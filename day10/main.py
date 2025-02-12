@@ -51,24 +51,34 @@ def main_a(puzzle_input):
 
 
 def is_in_loop(pos, loop_coords, pipes_map, X_BOUND, Y_BOUND):
-    for d in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-        ignore = '|' if d[0] == 0 else '-'
-        reached_edge = False
-        cpos = pos
-        n_loop_pipes = 0
-        while not reached_edge:
-            npos = (cpos[0] + d[0], cpos[1] + d[1])
-            if 0 <= cpos[0] < X_BOUND and 0 <= cpos[1] < Y_BOUND:
-                n_loop_pipes += 1 if npos in loop_coords and pipes_map[npos[1]][npos[0]] != ignore else 0
-                cpos = npos
-            else:
-                reached_edge = True
-        if n_loop_pipes % 2 == 1:
-            return True
-        if n_loop_pipes == 0:
-            return False
-        
-    return False
+    symbol_ud = {
+        '|': (1, 1),
+        '-': (0, 0),
+        'L': (1, 0),
+        'J': (1, 0),
+        '7': (0, 1),
+        'F': (0, 1),
+        'S': (1, 1),
+    }
+
+    reached_edge = False
+    cpos = pos
+    n_ups = 0
+    n_downs = 0
+
+    while not reached_edge:
+        npos = (cpos[0] - 1, cpos[1])
+        if 0 <= cpos[0] < X_BOUND and 0 <= cpos[1] < Y_BOUND:
+            if npos in loop_coords:
+                    ud = symbol_ud[pipes_map[npos[1]][npos[0]]]
+                    n_ups += ud[0]
+                    n_downs += ud[1]
+
+            cpos = npos
+        else:
+            reached_edge = True
+
+    return min(n_ups, n_downs) % 2 == 1
 
 
 def main_b(puzzle_input):
@@ -121,12 +131,19 @@ def main_b(puzzle_input):
         if reached_start:
             loop_coords = path_set
 
+    map_copy = [list(x) for x in pipes_map]
     for x in range(X_BOUND):
         for y in range(Y_BOUND):
             if (x, y) in loop_coords:
                 continue
             if is_in_loop((x, y), loop_coords, pipes_map, X_BOUND, Y_BOUND):
                 total += 1
+                map_copy[y][x] = '*'
+            else:
+                map_copy[y][x] = '.'
+
+    for line in map_copy:
+        print("".join(line))
 
     return total
 
